@@ -1,0 +1,3 @@
+.gitignore
+supra/db.sqlite3
+supra/contacts/migrations/*.py

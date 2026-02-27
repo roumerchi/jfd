@@ -26,8 +26,8 @@ class Contacts(models.Model):
     status = models.ForeignKey("ContactStatus", on_delete=models.PROTECT, related_name='contacts')
     first_name = models.CharField(max_length=100, blank=False, null=False)
     last_name = models.CharField(max_length=100, blank=False, null=False)
-    phone = models.CharField(max_length=30, blank=False, null=False)
-    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=30, blank=False, null=False, unique=True)
+    email = models.EmailField(blank=True, unique=True)
     city = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -1,8 +1,10 @@
+from datetime import timedelta
 from uuid import uuid4
-
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
+
 
 """
 class ContactStatusChoices(models.IntegerChoices):
@@ -55,3 +57,21 @@ class ContactStatus(models.Model): # basic statuses ['default', 'blocked'] are s
 
     def __str__(self):
         return self.title
+
+
+class CityWeather(models.Model):
+    city = models.CharField(max_length=100, unique=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    temperature = models.FloatField()
+    wind_speed = models.FloatField()
+    weather_code = models.IntegerField()
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'city_weather'
+        ordering = ['city']
+
+    def is_fresh(self) -> bool:
+        return timezone.now() - self.updated_at < timedelta(hours=1)

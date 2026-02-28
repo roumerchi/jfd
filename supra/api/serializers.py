@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from contacts.models import Contacts, ContactStatus
+from contacts.models import Contacts, ContactStatus, CityWeather
 
 
 class ContactStatusSerializer(serializers.ModelSerializer):
@@ -77,3 +77,9 @@ class ContactDetailSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class CityWeatherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CityWeather
+        fields = ('city', 'temperature', 'wind_speed', 'weather_code', 'updated_at',)

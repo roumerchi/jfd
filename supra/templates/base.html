@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-mode="ligth">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>{{ title }}</title>
+    {% block additional_meta_tags %}{% endblock %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% if request.user.is_authenticated %}
+    <meta name="user-uuid" content="{{ user_uuid }}">
+    {% endif %}
+    <link rel="stylesheet" type="text/css" href="{% static 'contacts/css/contacts.css' %}">
+    <style>
+        *, *:before, *:after {
+            box-sizing: border-box;
+            margin: 0;
+        }
+        :root {
+            --bg: #e7e7e7;
+            --container-bg: #f1f1f1;
+            --border: #cecece;
+        }
+        body {
+            font-family: sans-serif;
+            background: var(--bg);
+        }
+        main {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1440px;
+            margin: 20px auto;
+        }
+        a {
+            text-decoration: none;
+        }
+    </style>
+    {% block additional_css %}{% endblock additional_css %}
+    {% spaceless %}
+    {% if not request.user.is_authenticated %}
+    <script src="{% static 'tests/js/base.js' %}"></script>
+    {% endif %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% block additional_js %} {% endblock additional_js %}
+    {% endspaceless %}
+</head>
+<body>
+<header>
+    <div class="header">
+        <div>Sitename</div>
+        <nav class="flex space-x-1">
+            <a href="#" data-discover="true">
+            <button class="selected">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     class="lucide lucide-users w-4 h-4 mr-2" aria-hidden="true">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <path d="M16 3.128a4 4 0 0 1 0 7.744"></path>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                </svg>
+                <span>Contacts</span>
+            </button>
+            </a>
+        </nav>
+        <div class="button_1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 class="lucide lucide-circle-user w-5 h-5 text-primary" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="10" r="3"></circle>
+                <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
+            </svg>
+            {% spaceless %}
+            {% if request.user.is_authenticated %}
+            <span>{{ request.user.username }}</span>
+            {% else %}
+            <span>Log In</span>
+            {% endif %}
+            {% endspaceless %}
+        </div>
+    </div>
+</header>
+<main>
+    {% spaceless %}{% block content %}{% endblock content %}{% endspaceless %}
+</main>
+</body>
+</html>

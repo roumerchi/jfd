@@ -5,8 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers import ContactsSerializer, ContactDetailSerializer
-from contacts.models import Contacts
+from api.external import get_coordinates, get_weather
+from api.serializers import ContactsSerializer, ContactDetailSerializer, CityWeatherSerializer
+from contacts.models import Contacts, CityWeather
 from core.utils import custom_exception
 from services.contacts.services import delete_object, get_objects_list, advanced_get
 
@@ -89,3 +90,40 @@ class ContactApiView(APIView):
         """delete specific contact"""
         delete_object(model=Contacts, pk=contact_id)
         return Response(f'Contact with id {contact_id} was deleted succesfully', status=status.HTTP_204_NO_CONTENT)
+
+
+class CityWeatherAPIView(APIView):
+    """GET /api/weather/?city=London"""
+    def get(self, request):
+        city = request.query_params.get('city')
+        if not city:
+            return Response({'detail': 'city parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        city = city.strip()
+        weather = CityWeather.objects.filter(city__iexact=city).first()
+
+        if weather and weather.is_fresh():
+            serializer = CityWeatherSerializer(weather)
+            return Response(serializer.data)
+        try:
+            lat, lon = get_coordinates(city)
+            data = get_weather(lat, lon)
+        except Exception as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_502_BAD_GATEWAY
+            )
+
+        weather, _ = CityWeather.objects.update_or_create(
+            city=city,
+            defaults={
+                'latitude': lat,
+                'longitude': lon,
+                'temperature': data['temperature'],
+                'wind_speed': data['windspeed'],
+                'weather_code': data['weathercode'],
+            }
+        )
+
+        serializer = CityWeatherSerializer(weather)
+        return Response(serializer.data)

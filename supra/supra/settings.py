@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'phonenumber_field',
+    'api.apps.ApiConfig',
     'contacts.apps.ContactsConfig',
     'drf_spectacular',
 ]

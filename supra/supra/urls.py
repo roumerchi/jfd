@@ -4,7 +4,8 @@ from supra import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(('contacts.urls', 'contacts'), namespace='contacts')),
+    path('api/', include(('api.urls', 'contacts'), namespace='contacts')),
+    path('/', include(('contacts.urls', 'contacts'), namespace='contacts')),
 ]
 
 if settings.DEBUG:

@@ -1,72 +1,129 @@
-from django.contrib import messages
-from django.contrib.auth import login
-from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import render, redirect
-from django.views import View
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from contacts.forms import ContactForm
-from contacts.models import Contacts
+from contacts.external import get_coordinates, get_weather
+from contacts.models import Contacts, CityWeather
+from contacts.serializers import ContactsSerializer, ContactDetailSerializer, CityWeatherSerializer
+from core.utils import custom_exception
+from services.contacts.services import delete_object, get_objects_list, advanced_get
 
 
-class ContactsPageView(View):
-    template_name = 'contacts/contacts.html'
+class ContactsPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
+
+class ContactsApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Get list of contacts",
+        description="Return all contacts or a limited number if `amount` is provided",
+        responses={200: ContactsSerializer(many=True)}
+    )
     def get(self, request):
-        if request.user.is_authenticated:
-            contacts = Contacts.objects.filter(owner=request.user).order_by('last_name')
-            contact_form = ContactForm()
-            login_form = None
-        else:
-            contacts = None
-            contact_form = None
-            login_form = AuthenticationForm()
+        """get list of contacts"""
+        objects = get_objects_list(model=Contacts)
 
-        context = {
-            'contacts': contacts,
-            'contact_form': contact_form,
-            'login_form': login_form,
-        }
-        return render(request, self.template_name, context)
+        paginator = ContactsPagination()
+        page = paginator.paginate_queryset(objects, request)
+        serializer = ContactsSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
+    @extend_schema(
+        summary="Create new contact",
+        request=ContactsSerializer,
+        responses={201: ContactsSerializer},
+    )
+    @custom_exception
     def post(self, request):
-        """Обработка форм логина и добавления контакта"""
-        if 'login_submit' in request.POST:
-            login_form = AuthenticationForm(data=request.POST)
-            if login_form.is_valid():
-                user = login_form.get_user()
-                login(request, user)
-                messages.success(request, f'Добро пожаловать, {user.username}!')
-                return redirect(request.path)
-            else:
-                messages.error(request, 'Неверный логин или пароль')
-                # Рендерим сразу с формой логина с ошибками
-                return render(request, self.template_name, {
-                    'contacts': None,
-                    'contact_form': None,
-                    'login_form': login_form,
-                })
+        """add new contact to the list"""
+        serializer = ContactsSerializer(data=request.data, context={'method': 'POST', 'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        elif 'contact_submit' in request.POST:
-            if not request.user.is_authenticated:
-                messages.error(request, 'Сначала войдите в систему')
-                return redirect(request.path)
+        return Response(serializer.data)
 
-            contact_form = ContactForm(request.POST)
-            if contact_form.is_valid():
-                contact = contact_form.save(commit=False)
-                contact.owner = request.user
-                contact.status_id = 1  # статус по умолчанию
-                contact.save()
-                messages.success(request, 'Контакт создан')
-                return redirect(request.path)
-            else:
-                messages.error(request, 'Ошибка при создании контакта')
-                contacts = Contacts.objects.filter(owner=request.user).order_by('last_name')
-                # Рендерим с формой контакта с ошибками
-                return render(request, self.template_name, {
-                    'contacts': contacts,
-                    'contact_form': contact_form,
-                    'login_form': None,
-                })
 
-        return self.get(request)
+class ContactApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Get specific contact",
+        responses={200: ContactDetailSerializer(many=False)}
+    )
+    @custom_exception
+    def get(self, request, contact_id):
+        """get specific contact"""
+        obj = advanced_get(model=Contacts, pk=contact_id)
+        serializer = ContactDetailSerializer(obj)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Update specific contact",
+        request=ContactDetailSerializer,
+        responses={200: ContactDetailSerializer(many=False)}
+    )
+    @custom_exception
+    def patch(self, request, contact_id):
+        """update specific contact"""
+        contact = advanced_get(model=Contacts, pk=contact_id)
+        serializer = ContactDetailSerializer(
+            instance=contact, data=request.data, partial=True, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Delete specific contact",
+        responses={204: None}
+    )
+    @custom_exception
+    def delete(self, request, contact_id):
+        """delete specific contact"""
+        delete_object(model=Contacts, pk=contact_id)
+        return Response(f'Contact with id {contact_id} was deleted succesfully', status=status.HTTP_204_NO_CONTENT)
+
+
+class CityWeatherAPIView(APIView):
+    """GET /api/weather/?city=London"""
+    def get(self, request):
+        city = request.query_params.get('city')
+        if not city:
+            return Response({'detail': 'city parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        city = city.strip()
+        weather = CityWeather.objects.filter(city__iexact=city).first()
+
+        if weather and weather.is_fresh():
+            serializer = CityWeatherSerializer(weather)
+            return Response(serializer.data)
+        try:
+            lat, lon = get_coordinates(city)
+            data = get_weather(lat, lon)
+        except Exception as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_502_BAD_GATEWAY
+            )
+
+        weather, _ = CityWeather.objects.update_or_create(
+            city=city,
+            defaults={
+                'latitude': lat,
+                'longitude': lon,
+                'temperature': data['temperature'],
+                'wind_speed': data['windspeed'],
+                'weather_code': data['weathercode'],
+            }
+        )
+
+        serializer = CityWeatherSerializer(weather)
+        return Response(serializer.data)

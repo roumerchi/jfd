@@ -1,0 +1,16 @@
+.area_form {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    height: calc(100vh - 60px);
+    align-items: center;
+}
+.form_1 {
+    background: var(--border);
+    padding: 20px;
+    border: 2px solid;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}

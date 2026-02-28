@@ -1,49 +1,7 @@
-button {
-    border: initial;
-    background: initial;
-    display: inline-flex;
-    align-items: flex-end;
-    column-gap: 8px;
-    font-size: 16px;
-}
-
-header {
-    background: #fff;
-    display: flex;
-    justify-content: center;
-    border-bottom: 2px solid var(--border);
-}
-
 .area-sb {
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
-.header {
-    display: flex;
-    max-width: 1440px;
-    align-items: center;
-    padding: 10px 20px;
-    width: 100%;
-    justify-content: space-evenly;
-}
-
-.button_1 {
-    display: flex;
-    align-items: center;
-    column-gap: 6px;
-    border: 1px solid var(--border);
-    background: var(--container-bg);
-    padding: 6px 12px;
-    border-radius: 17px;
-    cursor: pointer;
-}
-
-.selected {
-    background: #007bff;
-    color: #fff;
-    padding: 6px 16px;
-    border-radius: 22px;
 }
 
 .add_contact {
@@ -53,6 +11,7 @@ header {
     border-radius: 10px;
     display: flex;
     column-gap: 6px;
+    cursor: pointer;
 }
 
 .section_tb {
@@ -123,15 +82,15 @@ header {
     padding: 15px;
 }
 
-.area_form {
+.area_form_2 {
     position: absolute;
     inset: 0;
-    display: none;
     justify-content: center;
     align-items: center;
+    display: flex;
 }
 
-.form_1 {
+.form_2 {
     background: var(--container-bg);
     border: 2px solid var(--border);
     padding: 20px;
@@ -154,36 +113,5 @@ header {
     right: 14px;
     top: 10px;
     font-size: 20px;
-}
-
-.flex_1 {
-    display: flex;
-    flex-direction: column;
-}
-
-.flex_2 {
-    display: flex;
-    gap: 15px;
-}
-
-.flex_3 {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.button__submit{
-    background: #007bff;
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 8px;
     cursor: pointer;
-}
-
-#new_contact:checked ~ .area_form {
-    display: flex;
-}
-
-input[type="checkbox"] {
-    display: none;
 }

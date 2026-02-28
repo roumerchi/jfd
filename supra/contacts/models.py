@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 
 """
 class ContactStatusChoices(models.IntegerChoices):
@@ -26,7 +27,7 @@ class Contacts(models.Model):
     status = models.ForeignKey("ContactStatus", on_delete=models.PROTECT, related_name='contacts')
     first_name = models.CharField(max_length=100, blank=False, null=False)
     last_name = models.CharField(max_length=100, blank=False, null=False)
-    phone = models.CharField(max_length=30, blank=False, null=False, unique=True)
+    phone = PhoneNumberField(unique=True, region='PL', blank=False, null=False)
     email = models.EmailField(blank=True, unique=True)
     city = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -41,7 +42,7 @@ class Contacts(models.Model):
             models.Index(fields=['created_at']),
         ]
 
-# REDO start data generation
+
 class ContactStatus(models.Model): # basic statuses ['default', 'blocked'] are set in the initialization command
     code = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=100)

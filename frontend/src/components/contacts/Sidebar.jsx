@@ -7,6 +7,9 @@ const Sidebar = ({contact, weather, setContacts, setSelectedContact, setWeather}
     const [deleteContact, , ] = useFetching(async (pk) => {
         return await ContactsService.removeContacts(pk)
     });
+    const [importContacts, isImporting, importError] = useFetching(async (file) => {
+        return await ContactsService.bulkImport(file);
+    });
 
     const handleDelete = async () => {
         if (!contact) return;
@@ -15,6 +18,24 @@ const Sidebar = ({contact, weather, setContacts, setSelectedContact, setWeather}
         setContacts(prev => prev.filter(c => c.id !== contact.id));
         setSelectedContact(null);
         setWeather(null);
+    };
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.csv')) {
+            alert('Please upload a CSV file');
+            return;
+        }
+        try {
+            const result = await importContacts(file);
+            alert(`Successfully imported ${result.created} contacts`);
+        } catch (e) {
+           console.log(e)
+        } finally {
+            e.target.value = '';
+        }
     };
 
     return (
@@ -46,7 +67,22 @@ const Sidebar = ({contact, weather, setContacts, setSelectedContact, setWeather}
                 </div>
             )}
             <div className="container_1 container_medium">
-                <div>IMPORT CONTACTS</div>
+                <label className="import_label">
+                    {isImporting ? 'Importing...' : 'IMPORT CONTACTS'}
+                    <input
+                        type="file"
+                        accept=".csv"
+                        hidden
+                        onChange={handleFileChange}
+                        disabled={isImporting}
+                    />
+                </label>
+
+                {importError && (
+                    <div style={{ color: 'red', marginTop: 8 }}>
+                        Failed to import contacts
+                    </div>
+                )}
             </div>
         </section>
     );

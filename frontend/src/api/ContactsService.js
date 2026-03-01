@@ -12,6 +12,12 @@ export default class ContactsService {
         const response = await apiClient.post(`/contacts/`, data);
         return response.data
     }
+    static async bulkImport(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post('/contacts/bulk/', formData, {headers: {'Content-Type': undefined}})
+        return response.data;
+    }
     static async removeContacts(pk) {
         const response = await apiClient.delete(`/contacts/${pk}/`);
         return response.data

@@ -69,7 +69,14 @@ const Contacts = () => {
 
     const renderPagination = () => {
         const pages = [];
-        for (let i = 1; i <= totalPages; i++) {
+        let startPage = Math.max(currentPage - 5, 1);
+        let endPage = startPage + 9;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(endPage - 11, 1);
+        }
+        for (let i = startPage; i <= endPage; i++) {
             pages.push(
                 <button className={`pagination_item  ${i === currentPage && 'pagination_item_selected'}`}
                     key={i} onClick={() => handlePageChange(i)}
@@ -79,9 +86,9 @@ const Contacts = () => {
                 </button>
             );
         }
+
         return pages;
     };
-
     return (
         <>
         <section className={"section_tb"}>

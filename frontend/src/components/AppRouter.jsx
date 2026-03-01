@@ -1,10 +1,12 @@
 import {Navigate, Route, Routes} from "react-router-dom";
 import {privateRotes, publicRotes, unprivateRotes} from "../routes";
 import {useAuth} from "../context";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 
 const AppRouter = () => {
     const { isAuth, setIsAuth, refreshAccessToken } = useAuth();
+    const [isLoading, setIsLoading] = useState(true);
+
     useEffect(() => {
         const checkToken = async () => {
             const refreshToken = localStorage.getItem('token');
@@ -20,11 +22,15 @@ const AppRouter = () => {
                     setIsAuth(false);
                 }
             }
-            console.log('USE EFFECT')
+            setIsLoading(false);
         };
         void checkToken();
     }, []);
-    console.log(isAuth)
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <Routes>
             {isAuth ? (

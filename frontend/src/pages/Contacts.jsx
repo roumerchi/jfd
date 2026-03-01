@@ -7,9 +7,12 @@ import WeatherService from "../api/WeatherService";
 import NewContact from "../components/contacts/NewContact";
 import ContactsService from "../api/ContactsService";
 import Chart from "../components/contacts/Chart";
+import {useLocation, useNavigate} from "react-router-dom";
 
 const Contacts = () => {
     useApiInterceptors();
+    const location = useLocation();
+    const navigate = useNavigate();
     const [contacts, setContacts] = useState([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
@@ -29,14 +32,6 @@ const Contacts = () => {
     }, 1000, 3);
 
     useEffect(() => {
-        void fetchContacts();
-    }, []);
-
-    useEffect(() => { // first page after changin sorting
-        void fetchContacts(1, buildOrdering());
-    }, [sortCreated, sortLastName]);
-
-    useEffect(() => {
         if (!selectedContact?.city) {
             setWeather(null);
             return;
@@ -52,20 +47,51 @@ const Contacts = () => {
         void loadWeather();
     }, [selectedContact?.city]);
 
-    const buildOrdering = () => {
+    const buildOrdering = (created = sortCreated, lastName = sortLastName) => {
         const ordering = [];
-        if (sortCreated === 'asc') ordering.push('created_at');
-        if (sortCreated === 'desc') ordering.push('-created_at');
-        if (sortLastName === 'asc') ordering.push('last_name');
-        if (sortLastName === 'desc') ordering.push('-last_name');
+        if (created === 'asc') ordering.push('created_at');
+        if (created === 'desc') ordering.push('-created_at');
+        if (lastName === 'asc') ordering.push('last_name');
+        if (lastName === 'desc') ordering.push('-last_name');
         return ordering.join(',');
     };
-    const handleSortCreatedChange = (e) => {setSortCreated(e.target.value);};
-    const handleSortLastNameChange = (e) => {setSortLastName(e.target.value);};
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
 
+        const page = parseInt(params.get('page')) || 1;
+        const sortCreatedParam = params.get('sortCreated') || 'none';
+        const sortLastNameParam = params.get('sortLastName') || 'none';
+
+        setCurrentPage(page);
+        setSortCreated(sortCreatedParam);
+        setSortLastName(sortLastNameParam);
+
+        void fetchContacts(page, buildOrdering(sortCreatedParam, sortLastNameParam));
+    }, [location.search]);
+
+    const handleSortCreatedChange = (e) => {
+        const val = e.target.value;
+        const params = new URLSearchParams(location.search);
+        params.set('page', 1);
+        params.set('sortCreated', val);
+        params.set('sortLastName', sortLastName);
+        navigate(`?${params.toString()}`);
+    };
+    const handleSortLastNameChange = (e) => {
+        const val = e.target.value;
+        const params = new URLSearchParams(location.search);
+        params.set('page', 1);
+        params.set('sortCreated', sortCreated);
+        params.set('sortLastName', val);
+        navigate(`?${params.toString()}`);
+    };
     const handlePageChange = (page) => {
         if (page < 1 || page > totalPages || page === currentPage) return;
-        void fetchContacts(page, buildOrdering());
+        const params = new URLSearchParams(location.search);
+        params.set('page', page);
+        params.set('sortCreated', sortCreated);
+        params.set('sortLastName', sortLastName);
+        navigate(`?${params.toString()}`);
     };
 
     const renderPagination = () => {
@@ -129,7 +155,7 @@ const Contacts = () => {
                      <div>Loading contacts...</div>
                  ) : contacts.length === 0 ? (
                      <div className="tb_row">
-                         <div>No contacts yet</div>
+                         {fetchError ? <div style={{color: 'red'}}>Failed to load contacts</div> : <div>No contacts yet</div>}
                      </div>
                  ) : (
                      contacts.map((contact, index) => (
@@ -150,7 +176,6 @@ const Contacts = () => {
                      {renderPagination()}
                  </div>
              </div>
-            {fetchError && <div style={{color: 'red'}}>Failed to load contacts</div>}
         </section>
         <Sidebar contact={selectedContact} weather={weather} setContacts={setContacts}
                  setSelectedContact={setSelectedContact} setWeather={setWeather}/>

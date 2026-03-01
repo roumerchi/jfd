@@ -1,10 +1,9 @@
 import axios from 'axios';
 import {useAuth} from "../context";
 
-const baseURL = 'http://127.0.0.1:8000/api';
-
+export const PORT = process.env.BACKEND_PORT || 8000
 const apiClient = axios.create({
-    baseURL: baseURL,
+    baseURL: process.env.REACT_APP_BASE_URL ? `${process.env.REACT_APP_BASE_URL}/api/` : `http://127.0.0.1:8000/api/`,
     headers: {
         'Content-Type': 'application/json',
     },

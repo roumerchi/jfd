@@ -25,11 +25,11 @@ const Auth = () => {
                 <span>Authorization</span>
                 <div className="flex_1">
                     <label htmlFor="username">Username</label>
-                    <input type="text" name="username" id="username" value={formData.username} onChange={handleChange} required/>
+                    <input placeholder={"admin"} type="text" name="username" id="username" value={formData.username} onChange={handleChange} required/>
                 </div>
                 <div className="flex_1">
                     <label htmlFor="password">Password</label>
-                    <input type="password" name="password" id="password" value={formData.password} onChange={handleChange} required/>
+                    <input placeholder={"root"} type="password" name="password" id="password" value={formData.password} onChange={handleChange} required/>
                 </div>
                 <div className="flex_3" style={{justifyContent: "flex-end"}}>
                     {errors && <div className="error-message" style={{ color: 'red' }}>{errors}</div>}

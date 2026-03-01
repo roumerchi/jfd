@@ -4,7 +4,7 @@ import {BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer
 const Chart = ({contacts}) => {
     const data = useMemo(() => {
         const counts = contacts.reduce((acc, c) => {
-            const city = c.city || '—'; // если нет города
+            const city = c.city || '—';
             acc[city] = (acc[city] || 0) + 1;
             return acc;
         }, {});

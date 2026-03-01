@@ -83,3 +83,13 @@ class CityWeatherSerializer(serializers.ModelSerializer):
     class Meta:
         model = CityWeather
         fields = ('city', 'temperature', 'wind_speed', 'weather_code', 'updated_at',)
+
+
+class ContactsImportSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class ContactsBulkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contacts
+        fields = ('first_name', 'last_name', 'phone', 'email', 'city',)

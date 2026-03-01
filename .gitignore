@@ -2,4 +2,3 @@
 supra/db.sqlite3
 supra/contacts/migrations/*.py
 /frontend/node_modules/
-

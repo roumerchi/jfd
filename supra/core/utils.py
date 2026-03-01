@@ -6,10 +6,12 @@ class CustomException(Exception):
         super().__init__(message)
 
 
-def custom_exception(func: callable):
-    def wrapper(request, *args, **kwargs):
-        try:
-            return func(request, *args, **kwargs)
-        except CustomException as e:
-            return Response({"error": f"{e}"}, status=400)
-    return wrapper
+def custom_exception(status=400):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except CustomException as e:
+                return Response({"error": str(e)}, status=status)
+        return wrapper
+    return decorator

@@ -22,12 +22,8 @@ class Command(BaseCommand): # had to be created to fill in the default values fo
         return ContactStatus.objects.filter(code='default').exists()
 
 def generate_data():
-    default_status = ContactStatus.objects.create(
-        code='default', title='Default', is_active=True
-    )
-    ContactStatus.objects.create(
-        code='blocked', title='Blocked', is_active=True
-    )
+    default_status = ContactStatus.objects.create(code='default', title='Default', is_active=True)
+    ContactStatus.objects.create(code='blocked', title='Blocked', is_active=True)
 
     if not CustomUser.objects.filter(username='admin').exists():
         user = CustomUser.objects.create_superuser(username='admin', email='admin@example.com', password='root')

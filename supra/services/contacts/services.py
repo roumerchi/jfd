@@ -1,8 +1,6 @@
-from core.utils import CustomException
+from django.db import transaction
 
-def get_object_by_id(model, pk):
-    obj = model.objects.filter(id=pk)
-    return obj
+from core.utils import CustomException
 
 def advanced_get(model, **kwargs):
     try:
@@ -11,16 +9,13 @@ def advanced_get(model, **kwargs):
         raise CustomException(f'{e}')
     return queryset
 
-def update_object(model, pk, **fields):
-    obj = advanced_get(model, id=pk)
-    for field, value in fields.items():
-        setattr(obj, field, value)
-    obj.save()
-    return obj
-
-def delete_object(model, pk):
-    obj = advanced_get(model, id=pk)
+def delete_object(model, pk, **kwargs):
+    obj = advanced_get(model, id=pk, **kwargs)
     return obj.delete()
 
-def get_objects_list(model):
-    return model.objects.all().order_by('-id')
+def get_objects_list(model, **kwargs):
+    return model.objects.filter(**kwargs).order_by('-id')
+
+def bulk_create(model, content: list):
+    with transaction.atomic():
+        model.objects.bulk_create(content)

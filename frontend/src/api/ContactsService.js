@@ -1,9 +1,12 @@
 import apiClient from "../hooks/useApiInterceptors";
 
 export default class ContactsService {
-    static async getContacts(page) {
-        const response = await apiClient.get(`/contacts/?page=${page}`)
-        return response.data
+    static async getContacts(page = 1, ordering = '') {
+        const params = new URLSearchParams();
+        params.set('page', page);
+        if (ordering) params.set('ordering', ordering);
+        const response = await apiClient.get(`/contacts/?${params.toString()}`);
+        return response.data;
     }
     static async createContact(data) {
         const response = await apiClient.post(`/contacts/`, data);

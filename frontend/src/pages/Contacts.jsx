@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useFetching} from "../hooks/useFetching";
-import apiClient, {useApiInterceptors} from "../hooks/useApiInterceptors";
+import {useApiInterceptors} from "../hooks/useApiInterceptors";
 import "../styles/contacts.css"
 import Sidebar from "../components/contacts/Sidebar";
 import WeatherService from "../api/WeatherService";
@@ -15,9 +15,10 @@ const Contacts = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [weather, setWeather] = useState(null);
-    const [fetchContacts, isLoading, fetchError] = useFetching(async (page = 1) => {
-        const data = await ContactsService.getContacts(page)
-
+    const [sortCreated, setSortCreated] = useState('none');
+    const [sortLastName, setSortLastName] = useState('none');
+    const [fetchContacts, isLoading, fetchError] = useFetching(async (page = 1, ordering = '') => {
+        const data = await ContactsService.getContacts(page, ordering);
         setContacts(data.results || []);
         setCurrentPage(page);
         setTotalPages(Math.ceil(data.count / 10));
@@ -29,6 +30,10 @@ const Contacts = () => {
     useEffect(() => {
         void fetchContacts();
     }, []);
+
+    useEffect(() => { // first page after changin sorting
+        void fetchContacts(1, buildOrdering());
+    }, [sortCreated, sortLastName]);
 
     useEffect(() => {
         if (!selectedContact?.city) {
@@ -46,9 +51,20 @@ const Contacts = () => {
         void loadWeather();
     }, [selectedContact?.city]);
 
+    const buildOrdering = () => {
+        const ordering = [];
+        if (sortCreated === 'asc') ordering.push('created_at');
+        if (sortCreated === 'desc') ordering.push('-created_at');
+        if (sortLastName === 'asc') ordering.push('last_name');
+        if (sortLastName === 'desc') ordering.push('-last_name');
+        return ordering.join(',');
+    };
+    const handleSortCreatedChange = (e) => {setSortCreated(e.target.value);};
+    const handleSortLastNameChange = (e) => {setSortLastName(e.target.value);};
+
     const handlePageChange = (page) => {
         if (page < 1 || page > totalPages || page === currentPage) return;
-        void fetchContacts(page);
+        void fetchContacts(page, buildOrdering());
     };
 
     const renderPagination = () => {
@@ -72,12 +88,20 @@ const Contacts = () => {
              <div className="container_1">
                 <div className="tb_header">
                     <span className="text_medium_1">Contacts</span>
-                    <input type="search" placeholder="search by name or city" />
                     <div className="tb_sorting">
-                        <div>Sort</div>
-                        <select>
-                            <option value="date">Date</option>
-                            <option value="surname">Surname</option>
+                        <label>Date</label>
+                        <select value={sortCreated} onChange={handleSortCreatedChange}>
+                            <option value="none">—</option>
+                            <option value="asc">asc</option>
+                            <option value="desc">desc</option>
+                        </select>
+                    </div>
+                    <div className="tb_sorting">
+                        <label>Surname</label>
+                        <select value={sortLastName} onChange={handleSortLastNameChange}>
+                            <option value="none">—</option>
+                            <option value="asc">asc</option>
+                            <option value="desc">desc</option>
                         </select>
                     </div>
                     <button type="button" className="add_contact" onClick={() => setIsFormOpen(true)}>

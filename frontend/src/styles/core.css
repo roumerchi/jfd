@@ -27,6 +27,7 @@ header {
     display: flex;
     justify-content: center;
     border-bottom: 2px solid var(--border);
+    height: 60px;
 }
 
 button {

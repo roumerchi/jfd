@@ -2,7 +2,7 @@
     display: flex;
     flex-grow: 1;
     justify-content: center;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 100px);
     align-items: center;
 }
 .form_1 {
@@ -13,4 +13,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+.error-message {
+    flex-grow: 1;
 }

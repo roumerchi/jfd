@@ -10,11 +10,14 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         try {
             const data = await AuthService.login(username, password);
-            localStorage.setItem('token', data.refresh)
-            tokensRef.current = { access: data.access, refresh: data.refresh };
-            setIsAuth(true);
+            if (data?.refresh) {
+                localStorage.setItem('token', data.refresh)
+                tokensRef.current = { access: data.access, refresh: data.refresh };
+                setIsAuth(true);
+            }
         } catch (e) {
             console.error("Login failed:", e);
+            return e.response?.data?.detail && "Login failed"
         }
     };
 

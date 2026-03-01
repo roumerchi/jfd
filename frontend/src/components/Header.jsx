@@ -1,9 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import AuthService from "../api/AuthService";
 import {Link} from "react-router-dom";
+import {useAuth} from "../context";
 
 const Header = () => {
-    const [username, setUsername] = useState(null);
+    const { isAuth } = useAuth();
 
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
@@ -11,10 +12,8 @@ const Header = () => {
             AuthService.verifyAccessTokenApi(token)
                 .then(() => {
                     const payload = JSON.parse(atob(token.split('.')[1]));
-                    setUsername(payload.username);
                 })
                 .catch(() => {
-                    setUsername(null);
                     localStorage.removeItem('accessToken');
                 });
         }
@@ -46,7 +45,7 @@ const Header = () => {
                     <circle cx="12" cy="10" r="3"></circle>
                     <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
                 </svg>
-                <span>{username ? username : 'Log In'}</span>
+                <span>{isAuth ? "Logged" : 'Log In'}</span>
             </Link>
         </div>
     );

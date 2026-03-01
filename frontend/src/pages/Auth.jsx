@@ -8,12 +8,15 @@ const Auth = () => {
     const [errors, setErrors] = useState(null);
 
     const handleChange = (e) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        setFormData(prev => ({...prev, [e.target.name]: e.target.value}));
+        setErrors(null);
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await login(formData.username, formData.password);
+        const errorMessage = await login(formData.username, formData.password);
+        if (errorMessage) {
+            setErrors(errorMessage)
+        }
     };
 
     return (
@@ -28,8 +31,8 @@ const Auth = () => {
                     <label htmlFor="password">Password</label>
                     <input type="password" name="password" id="password" value={formData.password} onChange={handleChange} required/>
                 </div>
-                {errors && <div className="error-message" style={{ color: 'red' }}>{errors}</div>}
-                <div className="flex_3" style={{"justify-content": "flex-end"}}>
+                <div className="flex_3" style={{justifyContent: "flex-end"}}>
+                    {errors && <div className="error-message" style={{ color: 'red' }}>{errors}</div>}
                     <button type="submit" className="button__submit">
                         {'Log In'}
                     </button>

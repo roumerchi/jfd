@@ -6,7 +6,7 @@ export default class AuthService {
             const response = await axios.post('http://127.0.0.1:8000/api/token/', {username, password})
             return response.data;
         } catch (e) {
-            console.log(e)
+            throw e;
         }
     }
     static async verifyAccessTokenApi(token) {

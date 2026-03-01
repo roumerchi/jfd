@@ -16,4 +16,6 @@
 }
 .error-message {
     flex-grow: 1;
+    text-align: center;
+    color: #a90000;
 }

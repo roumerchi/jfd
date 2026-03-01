@@ -29,8 +29,8 @@ class Contacts(models.Model):
     status = models.ForeignKey("ContactStatus", on_delete=models.PROTECT, related_name='contacts')
     first_name = models.CharField(max_length=100, blank=False, null=False)
     last_name = models.CharField(max_length=100, blank=False, null=False)
-    phone = PhoneNumberField(unique=True, region='PL', blank=False, null=False)
-    email = models.EmailField(blank=True, unique=True)
+    phone = PhoneNumberField(region='PL', blank=False, null=False)
+    email = models.EmailField(blank=True)
     city = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -42,6 +42,10 @@ class Contacts(models.Model):
         indexes = [
             models.Index(fields=['last_name']),
             models.Index(fields=['created_at']),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['owner', 'phone'], name='unique_owner_phone'),
+            models.UniqueConstraint(fields=['owner', 'email'], name='unique_owner_email'),
         ]
 
 

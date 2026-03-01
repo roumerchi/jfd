@@ -16,23 +16,24 @@ class BaseAPITestCase(APITestCase):
 
     def create_contacts(self):
         """Valid users"""
-        contacts = []
-        polish_cities = [
-            "Warsaw", "Krakow", "Lodz", "Wroclaw", "Poznan", "Gdansk",
-            "Szczecin", "Bydgoszcz", "Lublin", "Bialystok", "Katowice"
+        cities = [
+            "Warsaw", "Krakow", "Lodz", "Wroclaw", "Poznan", "Gdansk", "Szczecin", "Bydgoszcz", "Lublin",
+            "Bialystok", "Katowice"
         ]
+        contacts_to_create = []
         for i in range(11):
-            contacts.append(
-                Contacts.objects.create(
+            contacts_to_create.append(
+                Contacts(
                     owner=self.user,
                     first_name=f'User{i}',
                     last_name=f'CD_{i:02d}',
                     phone=f'+481234000{i:02d}',
                     email=f'user{i}@example.com',
-                    city=polish_cities[i],
+                    city=cities[i],
                     status=self.status_default,
                 )
             )
+        contacts = Contacts.objects.bulk_create(contacts_to_create,  ignore_conflicts=False)
         return contacts
 
 

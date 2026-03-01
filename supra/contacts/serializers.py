@@ -21,9 +21,9 @@ class ContactsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contacts
         fields = (
-            'status', 'status_code', 'first_name', 'last_name', 'phone', 'email', 'city', 'created_at',
+            'id', 'status', 'status_code', 'first_name', 'last_name', 'phone', 'email', 'city', 'created_at',
         )
-        read_only_fields = ('created_at',)
+        read_only_fields = ('id', 'created_at',)
 
     def create(self, validated_data):
         owner = self.context['request'].user

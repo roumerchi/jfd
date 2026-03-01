@@ -1,73 +1,69 @@
 import React, {useEffect, useState} from 'react';
 import {useFetching} from "../hooks/useFetching";
-import ContactsService from "../api/ContactsService";
-import {useApiInterceptors} from "../hooks/useApiInterceptors";
+import apiClient, {useApiInterceptors} from "../hooks/useApiInterceptors";
 import "../styles/contacts.css"
 import Sidebar from "../components/contacts/Sidebar";
 import WeatherService from "../api/WeatherService";
+import NewContact from "../components/contacts/NewContact";
+import ContactsService from "../api/ContactsService";
 
 const Contacts = () => {
     useApiInterceptors();
     const [contacts, setContacts] = useState([]);
-    const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
-        city: '',
-        email: '',
-        phone: '',
-    });
-    const [errors, setErrors] = useState({});
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [weather, setWeather] = useState(null);
-    const [isWeatherLoading, setIsWeatherLoading] = useState(false);
-    const [fetchContacts, isLoading, fetchError] = useFetching(async () => {
-        const data = await ContactsService.getContacts();
-        setContacts(data.results || data);
+    const [fetchContacts, isLoading, fetchError] = useFetching(async (page = 1) => {
+        const data = await ContactsService.getContacts(page)
+
+        setContacts(data.results || []);
+        setCurrentPage(page);
+        setTotalPages(Math.ceil(data.count / 10));
     });
-    const [createContact, isCreating, createError] = useFetching(async () => {
-        const newContact = await ContactsService.createContact(formData);
-        setContacts(prev => [newContact, ...prev]);
-        setFormData({ first_name: '', last_name: '', city: '', email: '', phone: '' });
-    });
+    const [fetchWeather, , ] = useFetching(async () => {
+        return await WeatherService.getWeather(selectedContact.city);
+    }, 1000, 3);
 
     useEffect(() => {
         void fetchContacts();
     }, []);
 
     useEffect(() => {
+        if (!selectedContact?.city) {
+            setWeather(null);
+            return;
+        }
         const loadWeather = async () => {
-            if (!selectedContact?.city) {
+            const data = await fetchWeather();
+            if (!data) {
                 setWeather(null);
                 return;
             }
-            try {
-                setIsWeatherLoading(true);
-                const data = await WeatherService.getWeather(selectedContact.city);
-                setWeather(data);
-            } catch (e) {
-                console.error('Weather load failed', e);
-                setWeather(null);
-            } finally {
-                setIsWeatherLoading(false);
-            }
+            setWeather(data);
         };
         void loadWeather();
-    }, [selectedContact]);
+    }, [selectedContact?.city]);
 
-    const handleChange = (e) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const handlePageChange = (page) => {
+        if (page < 1 || page > totalPages || page === currentPage) return;
+        void fetchContacts(page);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setErrors({});
-        try {
-            await createContact();
-        } catch (err) {
-            if (err.response?.data) setErrors(err.response.data);
-            console.error(err);
+    const renderPagination = () => {
+        const pages = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pages.push(
+                <button className={`pagination_item  ${i === currentPage && 'pagination_item_selected'}`}
+                    key={i} onClick={() => handlePageChange(i)}
+                    disabled={i === currentPage || isLoading}
+                >
+                    {i}
+                </button>
+            );
         }
+        return pages;
     };
 
     return (
@@ -88,56 +84,7 @@ const Contacts = () => {
                         <div>+</div>
                         <div>Add Contact</div>
                     </button>
-                    {isFormOpen && (
-                    <form className="area_form_2" onSubmit={handleSubmit} onClick={e => e.stopPropagation()}>
-                        <div className="form_2">
-                            <div className="form_close" onClick={() => setIsFormOpen(false)}>✖</div>
-                            <span className="form_header text_medium_1">Add New Contact</span>
-                            <div className="flex_2">
-                                <div className="flex_1">
-                                    <label>Name</label>
-                                    <input type="text" name="first_name" value={formData.first_name} onChange={handleChange}
-                                           maxLength={100} required id="id_first_name"/>
-                                </div>
-                                <div className="flex_1">
-                                    <label>Surname</label>
-                                    <input type="text" name="last_name" value={formData.last_name} onChange={handleChange}
-                                           maxLength={100} required id="id_last_name"/>
-                                </div>
-                            </div>
-                            <div className="flex_1">
-                                <label>City</label>
-                                <input type="text" name="city" value={formData.city} onChange={handleChange} maxLength={100}
-                                    id="id_city"/>
-                            </div>
-                            <div className="flex_2">
-                                <div className="flex_1">
-                                    <label>Email</label>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange}
-                                           placeholder="john@example.com" maxLength={254} required  id="id_email"/>
-                                </div>
-                                <div className="flex_1">
-                                    <label>Phone</label>
-                                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required
-                                           placeholder="+48 000 000 000"  aria-invalid={errors.phone ? "true" : "false"}
-                                           id="id_phone"
-                                    />
-                                    {errors.phone && (
-                                        <div className="error-message" style={{ color: 'red' }}>
-                                            {errors.phone}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="flex_3">
-                                <div className="button_1" onClick={() => setIsFormOpen(false)}>cancel</div>
-                                <button type="submit" name="contact_submit" className="button__submit" disabled={isCreating}>
-                                    {isCreating ? 'Adding...' : 'submit'}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    )}
+                    {isFormOpen && <NewContact setIsFormOpen={setIsFormOpen} setContacts={setContacts}/>}
                 </div>
                  <div className="tb_row row_main">
                      <div>NAME</div>
@@ -167,11 +114,14 @@ const Contacts = () => {
                          </div>
                      ))
                  )}
+                 <div className={'pagination_list'}>
+                     {renderPagination()}
+                 </div>
              </div>
             {fetchError && <div style={{color: 'red'}}>Failed to load contacts</div>}
-            {createError && <div style={{color: 'red'}}>Failed to add contact</div>}
         </section>
-        <Sidebar contact={selectedContact} weather={weather}/>
+        <Sidebar contact={selectedContact} weather={weather} setContacts={setContacts}
+                 setSelectedContact={setSelectedContact} setWeather={setWeather}/>
         </>
     );
 };

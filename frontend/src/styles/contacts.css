@@ -17,6 +17,7 @@
 .section_tb {
     display: flex;
     flex-grow: 0.7;
+    min-height: 510px;
 }
 
 .container_1 {
@@ -80,6 +81,7 @@
     display: flex;
     justify-content: center;
     padding: 15px;
+    position: relative;
 }
 
 .area_form_2 {

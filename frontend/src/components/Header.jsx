@@ -21,7 +21,7 @@ const Header = () => {
 
     return (
         <div className="header">
-            <div>Sitename</div>
+            <div style={{opacity: "0"}}>Sitename</div>
             <nav className="flex space-x-1">
                 <Link to={"/contacts/"} data-discover="true">
                     <button className="selected">

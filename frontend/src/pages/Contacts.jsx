@@ -6,6 +6,7 @@ import Sidebar from "../components/contacts/Sidebar";
 import WeatherService from "../api/WeatherService";
 import NewContact from "../components/contacts/NewContact";
 import ContactsService from "../api/ContactsService";
+import Chart from "../components/contacts/Chart";
 
 const Contacts = () => {
     useApiInterceptors();
@@ -153,6 +154,7 @@ const Contacts = () => {
         </section>
         <Sidebar contact={selectedContact} weather={weather} setContacts={setContacts}
                  setSelectedContact={setSelectedContact} setWeather={setWeather}/>
+        <Chart contacts={contacts}/>
         </>
     );
 };
